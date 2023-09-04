@@ -1,4 +1,4 @@
-name: Deploy to EKS
+name: trivy scanner
 on:
   push:
     branches: [ "main" ]
