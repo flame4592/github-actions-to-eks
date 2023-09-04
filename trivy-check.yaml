@@ -1,0 +1,41 @@
+name: Deploy to EKS
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ] #This job will run when the code is pushed to the main branch or if there is a Pull Request to the main branch. Running both is redundant
+
+jobs:
+  trivy-scanning-job:
+    name: trivy-sec-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs' #The scan type “fs” which means it will scan the code itself. 
+          exit-code: '1' #this will stop the pipeline if any vulnerability found , uncomment to continue pipeline with vulnerabilities .
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab #results in github security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Build an image from Dockerfile
+        run: |
+          docker build -t $imagename:latest .
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '$imagename:latest'
+          format: 'table'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
