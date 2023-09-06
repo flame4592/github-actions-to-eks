@@ -1,0 +1,29 @@
+#send email notifications using various actions available on the GitHub Marketplace, such as softprops/action-email
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1
+        run: echo "This step will succeed."
+        
+      - name: Step 2 (Potentially Failing)
+        run: exit 1
+        continue-on-error: true  # Allow this step to fail
+        
+      - name: Step 3 (Email Notification)
+        run: echo "This step runs regardless of previous step status."
+        if: always()  # Run always, regardless of success or failure
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        uses: softprops/action-email@v2
+        with:
+          from: "your-email@example.com"
+          to: "recipient@example.com"
+          subject: "GitHub Actions Workflow Status"
+          body: "Workflow completed with status: ${{ job.status }}"
+
+#Ensure that you've set up your SMTP server details and credentials as secrets in your repository for this to work.

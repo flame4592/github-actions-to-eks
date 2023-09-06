@@ -1,0 +1,20 @@
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1
+        run: echo "This step will succeed."
+        
+      - name: Step 2 (Potentially Failing)
+        run: exit 1
+        continue-on-error: true  # Allow this step to fail
+        
+      - name: Step 3 (Slack Notification)
+        run: echo "This step runs regardless of previous step status."
+        if: always()  # Run always, regardless of success or failure
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: rtCamp/action-slack@v4  #marketplace
+        with:
+          channel: "#general, @user1, @user2"  # Multiple recipients
+          message: "Workflow completed with status: ${{ job.status }}"
