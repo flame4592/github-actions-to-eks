@@ -1,0 +1,30 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to EC2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  #store in secret
+        run: |
+          # Set up SSH key and configure connection
+          mkdir -p ~/.ssh/       
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa  
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H your-ec2-instance-ip >> ~/.ssh/known_hosts
+
+          # Copy deployment script to EC2 and execute it
+          scp -r path/to/your/app ubuntu@your-ec2-instance-ip:/path/to/remote/directory/
+          ssh ubuntu@your-ec2-instance-ip 'bash -s' < path/to/your/deployment-script.sh
+#  scp -r command is used to recursively copy files and directories from one location to another over an SSH connection.
+#  It's a useful command for securely copying multiple files and directories between local and remote machines.
